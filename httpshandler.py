@@ -29,8 +29,8 @@ class SSLConnection(HTTPSConnection):
 
 
 class HTTPSHandler(HTTPSHandlerBase):
-    def __init__(self, client_certificate=None, context=None, *args, **kwargs):
-        super().__init__(self, *args, **kwargs)
+    def __init__(self, client_certificate=None, debuglevel=0, context=None, check_hostname=None):
+        super().__init__(debuglevel=debuglevel, context=context, check_hostname=check_hostname)
         self._client_certificate = client_certificate
         self._context = context
 

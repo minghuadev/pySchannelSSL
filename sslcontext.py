@@ -50,6 +50,7 @@ ISC_REQ_ALLOCATE_MEMORY = 0x00000100
 ISC_REQ_STREAM = 0x00010000
 
 SEC_I_CONTINUE_NEEDED = 0x00090312
+SEC_I_CONTEXT_EXPIRED = 0x00090317
 SEC_I_INCOMPLETE_CREDENTIALS = 0x00090320
 SEC_I_RENEGOTIATE = 0x00090321
 SEC_E_INCOMPLETE_MESSAGE = 0x80090318
@@ -334,7 +335,7 @@ class SSLContext(object):
             self._SchannelCred.cCreds = 1
             self._SchannelCred.paCred = pointer(self._client_certificate)
         
-        self._SchannelCred.grbitEnabledProtocols = SP_PROT_TLS1_1_CLIENT #| SP_PROT_TLS1_1_CLIENT | SP_PROT_SSL2_CLIENT
+        self._SchannelCred.grbitEnabledProtocols = 0 #SP_PROT_TLS1_1_CLIENT #| SP_PROT_TLS1_1_CLIENT | SP_PROT_SSL2_CLIENT
         self._SchannelCred.dwVersion = SCHANNEL_CRED_VERSION
         self._SchannelCred.dwFlags |= SCH_CRED_NO_DEFAULT_CREDS | \
                                       SCH_CRED_NO_SYSTEM_MAPPER | \
@@ -436,7 +437,7 @@ class SSLContext(object):
                 if Status == SEC_E_INCOMPLETE_MESSAGE:
                     continue
                 
-                if Status != SEC_E_OK and Status != SEC_I_RENEGOTIATE:
+                if Status != SEC_E_OK and Status != SEC_I_RENEGOTIATE and Status != SEC_I_CONTEXT_EXPIRED:
                     raise SSLError(WinError(c_long(Status).value))
                 
                 for idx in range(1,4):
@@ -462,7 +463,7 @@ class SSLContext(object):
                     shouldContinue = True
                     if Status != SEC_E_OK:
                         raise SSLError(WinError(c_long(Status).value))
-                elif Status != SEC_E_OK:
+                elif Status != SEC_E_OK and Status != SEC_I_CONTEXT_EXPIRED:
                     raise SSLError(WinError(c_long(Status).value))
 
             self._recv_buffer_decrypted = decrypted_data[buffersize:]
